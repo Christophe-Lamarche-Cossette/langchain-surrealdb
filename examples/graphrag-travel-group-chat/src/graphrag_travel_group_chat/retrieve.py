@@ -6,7 +6,9 @@ from langchain_ollama import ChatOllama
 from surrealdb import (
     BlockingHttpSurrealConnection,
     BlockingWsSurrealConnection,
+    Value,
 )
+from typing_extensions import cast
 
 from langchain_surrealdb.experimental.graph_qa.chain import SurrealDBGraphQAChain
 from langchain_surrealdb.experimental.surrealdb_graph import SurrealDBGraph
@@ -54,7 +56,7 @@ def graph_qa(
     verbose: bool,
 ) -> str:
     def query_logger(q: str, results: int) -> None:
-        graph_store.connection.insert(
+        _ = graph_store.connection.insert(
             "generated_query", {"query": q, "results": results}
         )
 
@@ -80,8 +82,8 @@ def graph_qa(
             """)
         }
     )
-    graph_answer = response["result"][0]["text"]
-    return graph_answer
+    graph_answer = response["result"][0]["text"]  # pyright: ignore[reportAny]
+    return str(graph_answer)  # pyright: ignore[reportAny]
 
 
 def graph_query(
@@ -98,9 +100,10 @@ def graph_query(
         )
         GROUP BY id
     """)
-    result = conn.query(query, {"kws": similar_keywords})
-    if isinstance(result, list):
-        result = [x.get("content", []) for x in result]
-    else:
-        result = []
+    query_result = conn.query(query, {"kws": cast(Value, similar_keywords)})
+    result: list[str] = []
+    if isinstance(query_result, list):
+        for x in query_result:
+            if isinstance(x, dict) and "content" in x:
+                result.append(str(x["content"]))
     return result

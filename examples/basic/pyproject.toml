@@ -1,5 +1,5 @@
 [project]
-name = "example-basic"
+name = "basic"
 version = "0.1.0"
 description = ""
 authors = [
@@ -8,15 +8,13 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.10,<4.0"
 dependencies = [
-    "langchain-core (>=0.3.61,<0.4.0)",
-    "langchain-ollama (>=0.3.3,<0.4.0)",
-    "surrealdb (>=1.0.4,<2.0.0)",
+    "langchain-core",
+    "langchain-ollama",
     "langchain-surrealdb",
 ]
 
-[tool.poetry.dependencies]
-langchain-surrealdb = { path = "../..", develop = true }
+[tool.uv.sources]
+langchain-surrealdb = { workspace = true }
 
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.ruff.lint]
+ignore = ["T201"]
