@@ -43,7 +43,7 @@ DEFINE_INDEX = """
     DEFINE INDEX IF NOT EXISTS {index_name}
         ON TABLE {table}
         FIELDS vector
-        MTREE DIMENSION {embedding_dimension} DIST COSINE TYPE F32
+        HNSW DIMENSION {embedding_dimension} DIST COSINE TYPE F32
         CONCURRENTLY;
 """
 
@@ -559,7 +559,7 @@ class SurrealDBVectorStore(VectorStore):
         results = self.connection.query(query, args)
         if not isinstance(results, list):
             raise ValueError(
-                f"Invalid query results, expected a list. Result: {results}"
+                f"Invalid query results, expected a list. Result: {results!r}"
             )
         return self._parse_results(results)
 
