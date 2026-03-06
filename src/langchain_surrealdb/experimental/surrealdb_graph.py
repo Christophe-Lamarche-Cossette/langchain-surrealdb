@@ -49,7 +49,7 @@ class SurrealDBGraph(GraphStore):
         return self.connection.query_raw(surql, vars)
 
     def _build_node_recordid(self, node: Node) -> RecordID:
-        return RecordID(self.table_prefix + node.type, node.id)
+        return RecordID(self.table_prefix.strip("_"), node.id)
 
     @property
     @override
@@ -155,7 +155,7 @@ class SurrealDBGraph(GraphStore):
                     CREATE_NODE_QUERY,
                     {
                         "record_id": self._build_node_recordid(node),
-                        "content": node.properties,  # pyright: ignore[reportUnknownMemberType]
+                        "content": {**node.properties, "type": node.type},  # pyright: ignore[reportUnknownMemberType]
                     },
                 )
                 if include_source and source is not None:
@@ -174,8 +174,8 @@ class SurrealDBGraph(GraphStore):
                     RELATE_QUERY,
                     {
                         "in": self._build_node_recordid(rel.source),
-                        "relation": self.relation_prefix + rel.type,
+                        "relation": self.relation_prefix.strip("_"),
                         "out": self._build_node_recordid(rel.target),
-                        "content": rel.properties,  # pyright: ignore[reportUnknownMemberType]
+                        "content": {**rel.properties, "type": rel.type},  # pyright: ignore[reportUnknownMemberType]
                     },
                 )
