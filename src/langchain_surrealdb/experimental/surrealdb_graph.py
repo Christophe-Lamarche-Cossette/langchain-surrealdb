@@ -1,7 +1,7 @@
 import json
 from typing import Any
 
-from langchain_community.graphs.graph_document import GraphDocument, Node
+from langchain_community.graphs.graph_document import GraphDocument, Node, Relationship
 from langchain_community.graphs.graph_store import GraphStore
 from surrealdb import (
     AsyncHttpSurrealConnection,
@@ -50,6 +50,9 @@ class SurrealDBGraph(GraphStore):
 
     def _build_node_recordid(self, node: Node) -> RecordID:
         return RecordID(self.table_prefix.strip("_"), node.id)
+
+    def _build_relationship_recordid(self, relationship: Relationship) -> RecordID:
+        return RecordID(self.relation_prefix.strip("_"), relationship.type)
 
     @property
     @override
@@ -179,3 +182,13 @@ class SurrealDBGraph(GraphStore):
                         "content": {**rel.properties, "type": rel.type},  # pyright: ignore[reportUnknownMemberType]
                     },
                 )
+                if include_source and source is not None:
+                    _ = self._query(
+                        RELATE_QUERY,
+                        {
+                            "in": source["id"],
+                            "relation": "MENTIONS",
+                            "out": self._build_relationship_recordid(rel),
+                            "content": {},
+                        },
+                    )
