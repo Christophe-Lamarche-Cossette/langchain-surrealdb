@@ -31,6 +31,11 @@ RELATE_QUERY = """
     CONTENT $content
 """
 
+RELATE_QUERY_WITH_RECORD_ID = """
+    RELATE $in->(type::record($relation, $record_id))->$out
+    CONTENT $content
+"""
+
 
 class SurrealDBGraph(GraphStore):
     def __init__(
@@ -174,10 +179,20 @@ class SurrealDBGraph(GraphStore):
 
             for rel in doc.relationships:
                 _ = self._query(
+                    RELATE_QUERY_WITH_RECORD_ID,
+                    {
+                        "record_id": rel.type,
+                        "in": self._build_node_recordid(rel.source),
+                        "relation": self.relation_prefix.strip("_"),
+                        "out": self._build_node_recordid(rel.target),
+                        "content": rel.properties,  # pyright: ignore[reportUnknownMemberType]
+                    },
+                )
+                _ = self._query(
                     RELATE_QUERY,
                     {
                         "in": self._build_node_recordid(rel.source),
-                        "relation": self.relation_prefix.strip("_"),
+                        "relation": self.relation_prefix + rel.type,
                         "out": self._build_node_recordid(rel.target),
                         "content": {**rel.properties, "type": rel.type},  # pyright: ignore[reportUnknownMemberType]
                     },

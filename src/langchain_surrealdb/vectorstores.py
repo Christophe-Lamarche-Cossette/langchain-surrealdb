@@ -60,13 +60,14 @@ SEARCH_QUERY = """
             text,
             metadata,
             vector,
-            (1 - vector::distance::knn()) as similarity
+            vector::similarity::cosine(vector, $vector) as similarity
         FROM type::table($table)
-        WHERE vector <|{k}|> $vector
+        WHERE 1=1
             {custom_filter_str}
     )
     WHERE similarity >= $score_threshold
     ORDER BY similarity DESC
+    LIMIT {k}
 """
 
 
